@@ -19,4 +19,7 @@ declare type TuserDetails = {
   current_leave_start: Date;
   current_leave_end: Date;
   leave_history: TleaveHistory;
+  is_active: boolean; //initially true, changeable only by admin
+  is_suspended: boolean; // initially false, changeable only by admin
+  is_terminated: boolean; //initially false, changeable only by admin
 };
