@@ -5,19 +5,21 @@ import { createClient } from "./utils/supabase/server";
 export async function middleware(request: NextRequest) {
   const supabase = createClient();
 
-  try {
-    const { data: potentialUserData, error: potentialError } =
-      await supabase.auth.getUser();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (potentialError) {
-      throw new Error(potentialError.message);
-    }
+  const user = userData.user;
+  if (!user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    NextResponse.redirect(url);
+    return;
+  }
 
-    if (!potentialUserData.user) {
-      throw new Error("No user returned from supabase client in middleware");
-    }
-  } catch (error) {
-    console.log("Error while finding user in middleware: ", error);
+  if (user && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
+    NextResponse.redirect(url);
+    return;
   }
 
   return await updateSession(request);
@@ -25,14 +27,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     "/home",
+    "/profile",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -1,7 +1,12 @@
-import React from "react";
+import SignOutBtn from "@/components/SignOutBtn";
 
 const HomePage = () => {
-  return <main>HomePage</main>;
+  return (
+    <main>
+      <p>Welcome to the homepage</p>
+      <SignOutBtn />
+    </main>
+  );
 };
 
 export default HomePage;
