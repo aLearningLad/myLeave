@@ -2,6 +2,7 @@
 
 import { EonboardingCategories } from "@/enums";
 import { roles } from "@/misc/roles";
+import { nanoid } from "nanoid";
 // 1. shop name, location, then button that reads 'Create shopId' at bottom. Initiates loading spinner or similar. Alert box
 // 2. how many workers do you anticipate having on your team? Prompt to generate worker keys (cool animation here)
 // 3. what roles do you see yourself allocating within the shop? (fry cook, baker, cashier,
@@ -50,7 +51,23 @@ const OnboardingUI = () => {
   };
 
   //create shop
-  const adminCreateShop = async () => {};
+  const adminCreateShop = async () => {
+    // 1. create shopID
+    const shopId = nanoid();
+
+    // create workerIDs
+    const workerIDsArray: string[] = [];
+    for (let i = 0; i < teamSize + 1; i++) {
+      const newId = nanoid();
+      workerIDsArray.push(newId);
+    }
+    console.log(
+      "This is the list of worker IDs for this shop: ",
+      workerIDsArray,
+      "and this is the shopID: ",
+      shopId
+    );
+  };
 
   // ===== FOR WORKERS =====
 
@@ -171,7 +188,10 @@ const OnboardingUI = () => {
               </div>
             </div>
             <section>
-              <button className=" bg-black rounded-none px-4 py-2 text-white text-lg">
+              <button
+                onClick={adminCreateShop}
+                className=" bg-black rounded-none px-4 py-2 text-white text-lg"
+              >
                 Proceed
               </button>
             </section>
