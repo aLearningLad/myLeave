@@ -2,7 +2,6 @@
 
 import { EonboardingCategories } from "@/enums";
 import { roles } from "@/misc/roles";
-import { button } from "framer-motion/client";
 // 1. shop name, location, then button that reads 'Create shopId' at bottom. Initiates loading spinner or similar. Alert box
 // 2. how many workers do you anticipate having on your team? Prompt to generate worker keys (cool animation here)
 // 3. what roles do you see yourself allocating within the shop? (fry cook, baker, cashier,
@@ -13,7 +12,7 @@ import { button } from "framer-motion/client";
 // no. of workers, assaignable roles, default leave balance, shopId, worker keys (with info button that opens modal, reminding
 // admin to keep these safe as each one can only be given to a single employee)
 
-import { useState, useEffect, ChangeEvent, ChangeEventHandler } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 
 const OnboardingUI = () => {
   const [onboardingType, setOnboardingType] = useState(
@@ -26,6 +25,14 @@ const OnboardingUI = () => {
   const [shopName, setShopName] = useState<string>("");
   // how many workers
   const [teamSize, setTeamSize] = useState<number>(1);
+
+  // roles in shop
+  const [rolesInShop, setRolesInShop] = useState<string[]>([]);
+
+  const addShopRole = (role: string) => {
+    setRolesInShop((prev) => [...prev, role]);
+    console.log("This is the current list of roles: ", rolesInShop);
+  };
 
   // ===== FOR WORKERS =====
 
@@ -87,8 +94,9 @@ const OnboardingUI = () => {
               <div className=" w-full h-full grid grid-cols-1 lg:grid-cols-2 overflow-auto gap-4">
                 {roles.map((role) => (
                   <button
-                    className=" h-12 w-full mx-3 my-1 bg-white text-black rounded-lg"
+                    className=" h-32 w-full mx-3 my-1 bg-white text-black rounded-lg"
                     key={role}
+                    onClick={(e) => addShopRole(role)}
                   >
                     {role}
                   </button>
@@ -96,7 +104,7 @@ const OnboardingUI = () => {
               </div>
             </div>
             <section>
-              <button className=" bg-white px-3 py-2 text-black rounded-md">
+              <button className="bg-white px-3 py-2 text-black rounded-md">
                 Add more
               </button>
             </section>
