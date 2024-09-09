@@ -19,7 +19,6 @@
 // and default values
 
 import OnboardingUI from "@/components/forOnboarding/OnboardingUI";
-import React from "react";
 
 const OnboardingPage = () => {
   return (
