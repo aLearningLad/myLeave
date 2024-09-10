@@ -1,8 +1,4 @@
 "use client";
-
-import { EonboardingCategories } from "@/enums";
-import { roles } from "@/misc/roles";
-import { nanoid } from "nanoid";
 // 1. shop name, location, then button that reads 'Create shopId' at bottom. Initiates loading spinner or similar. Alert box
 // 2. how many workers do you anticipate having on your team? Prompt to generate worker keys (cool animation here)
 // 3. what roles do you see yourself allocating within the shop? (fry cook, baker, cashier,
@@ -24,8 +20,13 @@ import { nanoid } from "nanoid";
 //
 
 import { useState, useEffect, ChangeEvent } from "react";
+import { EonboardingCategories } from "@/enums";
+import { roles } from "@/misc/roles";
+import { nanoid } from "nanoid";
+import { useRouter } from "next/navigation";
 
 const OnboardingUI = () => {
+  const router = useRouter();
   const [onboardingType, setOnboardingType] = useState(
     EonboardingCategories.AD
   );
@@ -61,12 +62,15 @@ const OnboardingUI = () => {
       const newId = nanoid();
       workerIDsArray.push(newId);
     }
-    console.log(
-      "This is the list of worker IDs for this shop: ",
-      workerIDsArray,
-      "and this is the shopID: ",
-      shopId
-    );
+    // console.log(
+    //   "This is the list of worker IDs for this shop: ",
+    //   workerIDsArray,
+    //   "and this is the shopID: ",
+    //   shopId
+    // );
+
+    // final step, redirect to admin dashboard
+    router.push("/dashboard");
   };
 
   // ===== FOR WORKERS =====
