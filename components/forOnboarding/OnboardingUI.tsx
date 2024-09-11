@@ -16,14 +16,23 @@
 // c. redirect to admin panel
 //
 //
+// admin table structure: shopID, shopname, shoplocation, teamsize, rolesinshop (this is an array),
+// workerIDs(this is an array), shop phone number, shop email, shop address,
+// shop status(active, inactive, in setup mode), subscription status, adminId,
+//
 //
 //
 
 import { useState, useEffect, ChangeEvent } from "react";
-import { EonboardingCategories } from "@/enums";
+import {
+  EonboardingCategories,
+  EshopStatus,
+  EsubscriptionStatus,
+} from "@/enums";
 import { roles } from "@/misc/roles";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
+import { TworkerId } from "@/types";
 
 const OnboardingUI = () => {
   const router = useRouter();
@@ -46,6 +55,26 @@ const OnboardingUI = () => {
   // roles in shop
   const [rolesInShop, setRolesInShop] = useState<string[]>([]);
 
+  // shop phone number
+  const [shopPhone, setPhoneShop] = useState<string>("");
+
+  // shop email
+  const [shopEmail, setShopEmail] = useState<string>("");
+
+  // shop address
+  const [shopAddress, setShopAddress] = useState<string>("");
+
+  // shop status
+  const [shopStatus, setShopStatus] = useState<string>(EshopStatus.IN_SETUP);
+
+  // subscription status
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>(
+    EsubscriptionStatus.NOT_SUBBBED
+  );
+
+  // important state, will trigger fetching of shopId
+  const [isAdminCreated, setIsAdminCreated] = useState<boolean>(false);
+
   const addShopRole = (role: string) => {
     setRolesInShop((prev) => [...prev, role]);
     console.log("This is the current list of roles: ", rolesInShop);
@@ -53,25 +82,33 @@ const OnboardingUI = () => {
 
   //create shop
   const adminCreateShop = async () => {
-    // 1. create shopID
-    const shopId = nanoid();
+    // 1. shopID is generated on supabase via uuid generate function, sorted :)
+    // 2. need to send admin details first THEN,
+    // 3. request and await shopId, then attach it to each workerEntries object uploaded to database
 
-    // create workerIDs
-    const workerIDsArray: string[] = [];
+    // 4. create workerIDs,
+    const workerEntries: TworkerId[] = [];
     for (let i = 0; i < teamSize + 1; i++) {
-      const newId = nanoid();
-      workerIDsArray.push(newId);
+      workerEntries.push({
+        worker_id: nanoid(),
+
+        is_registered: false,
+      });
     }
-    // console.log(
-    //   "This is the list of worker IDs for this shop: ",
-    //   workerIDsArray,
-    //   "and this is the shopID: ",
-    //   shopId
-    // );
+
+    // . set subscription status to on trial
+    setSubscriptionStatus(EsubscriptionStatus.ON_TRIAL);
+
+    // 3. insert worker into database's "workers" table. Worker will populate their row upon registration
 
     // final step, redirect to admin dashboard
     router.push("/dashboard");
   };
+
+  //fetch shopId, create number of workers and attach shopId to each via loop
+  //will utilize useEffect, dependencies will be adminCreated(state), which is altered based on response from supabase
+  //admin table creation.
+  useEffect(() => {}, []);
 
   // ===== FOR WORKERS =====
 
