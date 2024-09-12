@@ -73,6 +73,9 @@ const OnboardingUI = () => {
     EsubscriptionStatus.NOT_SUBBBED
   );
 
+  // default leave days set by admin
+  const [leaveDays, setLeaveDays] = useState<number>(1);
+
   // important state, will trigger fetching of shopId
   const [isAdminCreated, setIsAdminCreated] = useState<boolean>(false);
 
@@ -86,37 +89,51 @@ const OnboardingUI = () => {
     const supabase = createClient();
 
     // 1. shopID is generated on supabase via uuid generate function, sorted :)
-    try {
-      const { data: adminCreationData, error: adminCreationError } =
-        await supabase.from("admintable").insert({
-          shop_name: { shopName },
-          shop_location: { shopLocation },
-          team_size: { teamSize },
-        });
+    if (
+      shopName &&
+      shopEmail &&
+      shopLocation &&
+      subscriptionStatus &&
+      shopStatus &&
+      shopPhone &&
+      teamSize
+    ) {
+      try {
+        const { data: adminCreationData, error: adminCreationError } =
+          await supabase.from("admintable").insert({
+            shop_name: { shopName },
+            shop_location: { shopLocation },
+            team_size: { teamSize },
+            shop_email: { shopEmail },
+            shop_status: { shopStatus },
+            shop_phone: { shopPhone },
+          });
 
-      if (adminCreationError) {
-        throw new Error(adminCreationError.message);
-      }
+        if (adminCreationError) {
+          throw new Error(adminCreationError.message);
+        }
 
-      if (adminCreationData) {
-        setIsAdminCreated(true);
-      }
-    } catch (error) {}
+        // final step, redirect to admin dashboard
+        router.push("/dashboard");
 
-    // 2. set subscription status to on trial
-    setSubscriptionStatus(EsubscriptionStatus.ON_TRIAL);
-
-    // final step, redirect to admin dashboard
-    router.push("/dashboard");
+        if (adminCreationData) {
+          setIsAdminCreated(true);
+        }
+      } catch (error) {}
+    } else {
+      alert("Some values are missing!");
+    }
   };
 
   //fetch shopId, create number of workers and attach shopId to each via loop
   //will utilize useEffect, dependencies will be adminCreated(state), which is altered based on response from supabase
   //admin table creation.
   useEffect(() => {
-    alert(
-      "Admin has been created. We know this because the designated state changed! Yaaaay!"
-    );
+    if (isAdminCreated) {
+      alert(
+        "Admin has been created. We know this because the designated state changed! Yaaaay!"
+      );
+    }
 
     const allocateWorkerSpace = async () => {
       //====> populate empty rows in worker table, worker will fill it in when registering
@@ -233,6 +250,10 @@ const OnboardingUI = () => {
             <input
               type="text"
               className=" w-6/12 md:w-4/12 lg:w-2/12 h-16 rounded-md bg-slate-300 text-black p-2 lg:p-5"
+              value={leaveDays}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setLeaveDays(Number(e.target.value))
+              }
             />
           </div>
         )}
