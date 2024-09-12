@@ -33,6 +33,7 @@ import { roles } from "@/misc/roles";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { TworkerId } from "@/types";
+import { createClient } from "@/utils/supabase/client";
 
 const OnboardingUI = () => {
   const router = useRouter();
@@ -80,26 +81,30 @@ const OnboardingUI = () => {
     console.log("This is the current list of roles: ", rolesInShop);
   };
 
-  //create shop
+  //====>create shop fxn
   const adminCreateShop = async () => {
+    const supabase = createClient();
+
     // 1. shopID is generated on supabase via uuid generate function, sorted :)
-    // 2. need to send admin details first THEN,
-    // 3. request and await shopId, then attach it to each workerEntries object uploaded to database
+    try {
+      const { data: adminCreationData, error: adminCreationError } =
+        await supabase.from("admintable").insert({
+          shop_name: { shopName },
+          shop_location: { shopLocation },
+          team_size: { teamSize },
+        });
 
-    // 4. create workerIDs,
-    const workerEntries: TworkerId[] = [];
-    for (let i = 0; i < teamSize + 1; i++) {
-      workerEntries.push({
-        worker_id: nanoid(),
+      if (adminCreationError) {
+        throw new Error(adminCreationError.message);
+      }
 
-        is_registered: false,
-      });
-    }
+      if (adminCreationData) {
+        setIsAdminCreated(true);
+      }
+    } catch (error) {}
 
-    // . set subscription status to on trial
+    // 2. set subscription status to on trial
     setSubscriptionStatus(EsubscriptionStatus.ON_TRIAL);
-
-    // 3. insert worker into database's "workers" table. Worker will populate their row upon registration
 
     // final step, redirect to admin dashboard
     router.push("/dashboard");
@@ -108,7 +113,27 @@ const OnboardingUI = () => {
   //fetch shopId, create number of workers and attach shopId to each via loop
   //will utilize useEffect, dependencies will be adminCreated(state), which is altered based on response from supabase
   //admin table creation.
-  useEffect(() => {}, []);
+  useEffect(() => {
+    alert(
+      "Admin has been created. We know this because the designated state changed! Yaaaay!"
+    );
+
+    const allocateWorkerSpace = async () => {
+      //====> populate empty rows in worker table, worker will fill it in when registering
+
+      // 1. get shopId after admin has created it
+
+      // 2. generate the workerIDs
+      const workerEntries: TworkerId[] = [];
+      for (let i = 0; i < teamSize + 1; i++) {
+        workerEntries.push({
+          worker_id: "",
+
+          is_registered: false,
+        });
+      }
+    };
+  }, [isAdminCreated]);
 
   // ===== FOR WORKERS =====
 
