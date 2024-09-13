@@ -74,7 +74,7 @@ const OnboardingUI = () => {
   );
 
   // default leave days set by admin
-  const [leaveDays, setLeaveDays] = useState<number>(1);
+  const [defaultLeaveDays, setDefaultLeaveDays] = useState<number>(1);
 
   // important state, will trigger fetching of shopId
   const [isAdminCreated, setIsAdminCreated] = useState<boolean>(false);
@@ -101,15 +101,16 @@ const OnboardingUI = () => {
       try {
         const { data: adminCreationData, error: adminCreationError } =
           await supabase.from("admintable").insert({
-            shop_name: { shopName },
-            shop_location: { shopLocation },
-            team_size: { teamSize },
-            shop_email: { shopEmail },
-            shop_status: { shopStatus },
-            shop_phone: { shopPhone },
+            shop_name: shopName,
+            shop_location: shopLocation,
+            team_size: teamSize,
+            shop_email: shopEmail,
+            shop_status: shopStatus,
+            shop_phone: shopPhone,
           });
 
         if (adminCreationError) {
+          console.log("Teamsize value type is: ", typeof teamSize);
           throw new Error(adminCreationError.message);
         }
 
@@ -118,8 +119,14 @@ const OnboardingUI = () => {
 
         if (adminCreationData) {
           setIsAdminCreated(true);
+          console.log(
+            "The newly-created admin data from DB: ",
+            adminCreationData
+          );
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log("This error happend while creating admin: ", error);
+      }
     } else {
       alert("Some values are missing!");
     }
@@ -129,10 +136,18 @@ const OnboardingUI = () => {
   //will utilize useEffect, dependencies will be adminCreated(state), which is altered based on response from supabase
   //admin table creation.
   useEffect(() => {
+    const supabase = createClient();
+    const getShopId = async () => {
+      const { data: shopIdData, error: shopIdError } = await supabase
+        .from("admintable")
+        .select("shop_id");
+
+      console.log("this response should contain the shopId: ", shopIdData);
+    };
     if (isAdminCreated) {
-      alert(
-        "Admin has been created. We know this because the designated state changed! Yaaaay!"
-      );
+      // ********** TEST ********
+      // get shopId after creation
+      getShopId();
     }
 
     const allocateWorkerSpace = async () => {
@@ -195,6 +210,40 @@ const OnboardingUI = () => {
           </div>
         )}
         {slide === 1 && !finalSlide && (
+          <div className=" w-full h-full bg-black flex-col text-white flex justify-center items-center text-2xl">
+            {/* lable and input slide in from left of screen, delayed with bounce */}
+            <label htmlFor="shopEmail">
+              Let's setup a contact phone & email for the shop
+            </label>
+            <section className=" w-full flex justify-center items-center gap-2 lg:gap-3 flex-col lg:flex-row">
+              <div className=" w-12 h-12 rounded-full bg-white" />
+              <input
+                type="text"
+                className=" w-full h-12 md:w-10/12 outline-none mb-3 focus:outline-none py-2 px-4 lg:px-5 lg:w-8/12 xl:w-6/12 rounded-lg text-[14px] lg:text-[16px] bg-slate-600"
+                value={shopEmail}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setShopEmail(e.target.value)
+                }
+                placeholder="Eg. milkyShop@milk.com"
+              />
+            </section>
+            {/* add a 'save' button here to trigger location input box to slide in */}
+            <div className=" w-full flex justify-center flex-col lg:flex-row gap-2 items-center text-center">
+              {/* this will slide in with bounce from right when shop name value is saved */}
+              <div className=" w-12 h-12 rounded-full bg-white" />
+              <input
+                type="text"
+                className=" w-full h-12 md:w-10/12 outline-none focus:outline-none py-2 px-4 lg:px-5 lg:w-8/12 xl:w-6/12 rounded-lg text-[14px] lg:text-[16px] bg-slate-600"
+                value={shopPhone}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setPhoneShop(e.target.value)
+                }
+                placeholder="Eg. 012 345 6789"
+              />
+            </div>
+          </div>
+        )}
+        {slide === 2 && !finalSlide && (
           <div className=" w-full h-full bg-slate-800 text-white flex flex-col justify-center items-center text-2xl">
             <label htmlFor="workerCount">
               How many people do you employ in this shop?
@@ -205,7 +254,7 @@ const OnboardingUI = () => {
                 type="range"
                 value={teamSize}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setTeamSize(e.target.valueAsNumber)
+                  setTeamSize(Number(e.target.value))
                 }
                 min={1}
                 max={100}
@@ -219,7 +268,7 @@ const OnboardingUI = () => {
             </span>
           </div>
         )}
-        {slide === 2 && !finalSlide && (
+        {slide === 3 && !finalSlide && (
           <div className="w-full h-full bg-black text-white flex flex-col gap-2 justify-center items-center text-2xl">
             <h3>What kinds of roles do you plan to allocate in your store?</h3>
 
@@ -243,16 +292,30 @@ const OnboardingUI = () => {
             </section>
           </div>
         )}
-        {slide === 3 && !finalSlide && (
+        {slide === 4 && !finalSlide && (
           <div className=" w-full h-full bg-black text-white flex flex-col justify-center items-center text-2xl">
             <h3>How many annual leave days can you grant each employee?</h3>
 
+            <section className=" flex justify-center items-center gap-2 w-full md:w-6/12 lg:w-3/12">
+              <p>1</p>
+              <input
+                type="range"
+                value={defaultLeaveDays}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDefaultLeaveDays(Number(e.target.value))
+                }
+                min={1}
+                max={100}
+                className=" w-full h-4 rounded-lg text-white bg-neutral-200 cursor-pointer"
+              />
+              <p>30</p>
+            </section>
             <input
               type="text"
               className=" w-6/12 md:w-4/12 lg:w-2/12 h-16 rounded-md bg-slate-300 text-black p-2 lg:p-5"
-              value={leaveDays}
+              value={defaultLeaveDays}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setLeaveDays(Number(e.target.value))
+                setDefaultLeaveDays(Number(e.target.value))
               }
             />
           </div>
