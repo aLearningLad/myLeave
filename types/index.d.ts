@@ -34,5 +34,6 @@ declare type TuserDetails = {
 
 export type TworkerId = {
   worker_id: string | UUID;
+  shop_id: string;
   is_registered: boolean;
 };

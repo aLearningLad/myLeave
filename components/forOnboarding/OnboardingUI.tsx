@@ -79,6 +79,9 @@ const OnboardingUI = () => {
   // important state, will trigger fetching of shopId
   const [isAdminCreated, setIsAdminCreated] = useState<boolean>(false);
 
+  // shopId to attach to worker accounts
+  const [shopIdToAttach, setShopIdToAttach] = useState<string | any>();
+
   const addShopRole = (role: string) => {
     setRolesInShop((prev) => [...prev, role]);
     console.log("This is the current list of roles: ", rolesInShop);
@@ -117,13 +120,13 @@ const OnboardingUI = () => {
         // final step, redirect to admin dashboard
         router.push("/dashboard");
 
-        if (adminCreationData) {
-          setIsAdminCreated(true);
-          console.log(
-            "The newly-created admin data from DB: ",
-            adminCreationData
-          );
-        }
+        // if (adminCreationData) {
+        setIsAdminCreated(true);
+        console.log(
+          "The newly-created admin data from DB: ",
+          adminCreationData
+        );
+        // }
       } catch (error) {
         console.log("This error happend while creating admin: ", error);
       }
@@ -135,37 +138,67 @@ const OnboardingUI = () => {
   //fetch shopId, create number of workers and attach shopId to each via loop
   //will utilize useEffect, dependencies will be adminCreated(state), which is altered based on response from supabase
   //admin table creation.
+
+  // 1. first useEffect is to populate admintable, get shopId
   useEffect(() => {
     const supabase = createClient();
     const getShopId = async () => {
       const { data: shopIdData, error: shopIdError } = await supabase
         .from("admintable")
-        .select("shop_id");
+        .select("shop_id")
+        .eq("shop_name", shopName)
+        .eq("shop_location", shopLocation)
+        .eq("shop_phone", shopPhone);
 
-      console.log("this response should contain the shopId: ", shopIdData);
+      if (shopIdData && shopIdData.length > 0) {
+        setShopIdToAttach(shopIdData[0].shop_id);
+      }
+
+      // console.log("this is the shopId I will attach: ", shopIdData);
     };
     if (isAdminCreated) {
       // ********** TEST ********
       // get shopId after creation
       getShopId();
     }
+  }, [isAdminCreated]);
 
+  // 2. second useEffect is to populate worker table. Dependency array will incl. shopIdToAttach
+
+  useEffect(() => {
+    const supabase = createClient();
     const allocateWorkerSpace = async () => {
       //====> populate empty rows in worker table, worker will fill it in when registering
+      if (!shopIdToAttach) return;
 
-      // 1. get shopId after admin has created it
+      // 1. get shopId after admin has created it ===> done
 
       // 2. generate the workerIDs
       const workerEntries: TworkerId[] = [];
       for (let i = 0; i < teamSize + 1; i++) {
         workerEntries.push({
-          worker_id: "",
-
+          worker_id: nanoid(),
+          shop_id: shopIdToAttach,
           is_registered: false,
         });
       }
+      const { error: workerInsertError } = await supabase
+        .from("workers")
+        .insert(workerEntries);
+
+      if (workerInsertError) {
+        console.log(
+          "Error inserting worker: ",
+          workerInsertError.details,
+          workerInsertError.message
+        );
+      }
     };
-  }, [isAdminCreated]);
+
+    if (shopIdToAttach) {
+      allocateWorkerSpace();
+    }
+  }, [shopIdToAttach]);
 
   // ===== FOR WORKERS =====
 
